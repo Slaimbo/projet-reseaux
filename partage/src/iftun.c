@@ -44,7 +44,7 @@ int transfert (int src, int dest)
 	{
 		if ( (rep = read(src, (void*) buffer, BUFFER_SIZE) ) == -1 )
 			return 1;
-		write(dest, (void*) buffer, rep);
+		send(dest, buffer, rep, 0);
 	}
 }
 
