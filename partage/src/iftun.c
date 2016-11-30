@@ -42,9 +42,9 @@ int transfert (int src, int dest)
 	int rep;
 	while(1)
 	{
-		if ( (rep = read(src, (void*) buffer, BUFFER_SIZE) ) == -1 )
+		if ( (rep = read(src, buffer, BUFFER_SIZE) ) == -1 )
 			return 1;
-		send(dest, buffer, rep, 0);
+		write(dest, buffer, rep);
 	}
 }
 

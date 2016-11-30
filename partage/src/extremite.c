@@ -1,17 +1,17 @@
 #include "extremite.h"
 
 
-void ext_out (char* port)
+void ext_out (char* port, int tun)
 {
 	int sock_serveur, sock_client; /* descripteurs de socket */
-	int len, on; 					/* utilitaires divers */
-	struct addrinfo * resol;	 /* résolution */
+	int len, on; 				   /* utilitaires divers */
+	struct addrinfo * resol;	   /* résolution */
 
-	struct addrinfo indic = {AI_PASSIVE, /* Toute interface */
+	struct addrinfo indic = {AI_PASSIVE,            /* Toute interface */
 							PF_INET6,SOCK_STREAM,0, /* IP mode connecté */
 							0,NULL,NULL,NULL};
 	struct sockaddr_in6 client; /* adresse de socket du client */
-	int err; /* code d'erreur */
+	int err;                    /* code d'erreur */
 
 	err = getaddrinfo(NULL, port, &indic, &resol); 
 
@@ -51,7 +51,7 @@ void ext_out (char* port)
 	fprintf(stderr,"bind!\n");
 
 	/* la socket est prête à recevoir */
-	if (listen(sock_serveur, SOMAXCONN) < 0)
+	if ( listen(sock_serveur, SOMAXCONN ) < 0)
 	{
 		perror("listen");
 		exit(6);
@@ -62,7 +62,7 @@ void ext_out (char* port)
 	{
 		/* attendre et gérer indéfiniment les connexions entrantes */
 		len = sizeof(struct sockaddr_in6);
-		if( (sock_client = accept(sock_serveur, (struct sockaddr *)&client, (socklen_t*)&len)) < 0 ) 
+		if( (sock_client = accept(sock_serveur, (struct sockaddr *) &client, (socklen_t*) &len)) < 0 ) 
 		{
 			perror("accept");
 			exit(7);
@@ -71,26 +71,26 @@ void ext_out (char* port)
 		printf("Nouveau client de ext-out\n");
 
 		/* traitement */
-		if(fork() == 0)
+		if( fork() == 0 )
 		{
-			ext_out_handler(sock_client);
+			ext_out_handler(sock_client, tun);
 			break;
 		}
 	}
 }
 
-void ext_out_handler(int sock_client)
+void ext_out_handler(int sock_client, int tun)
 {
 	ssize_t lu; /* nb d'octets reçus */
 	char tampon[MAXLIGNE+1]; 
 	printf("Handler OK\n");
 	while (1)
 	{
-		lu = recv(sock_client,tampon,MAXLIGNE,0);
+		lu = read(sock_client, tampon, MAXLIGNE);
 		if (lu > 0 )
 		{
 			tampon[lu] = '\0';
-			printf("%s", tampon);
+			write( tun, tampon, lu );
 		}
 		else 
 			break;
@@ -118,22 +118,21 @@ void ext_in(char* ip, char* port, int tun)
 	}
 
 	/* Création de la socket, de type TCP / IP */
-
 	if ((sock = socket(resol->ai_family, resol->ai_socktype, resol->ai_protocol)) < 0) 
 	{
 		perror("allocation de socket");
 		exit(3);
 	}
 
-	if (connect(sock, resol->ai_addr, sizeof(struct sockaddr_in6)) < 0)
+	while (connect(sock, resol->ai_addr, sizeof(struct sockaddr_in6)) < 0)
 	{
-		perror("connexion");
-		exit(4);
+		printf("Erreur de connection, reconnectiong...\n");
+		sleep(1);
 	}
 
 	freeaddrinfo(resol); /* /!\ Libération mémoire */
-	printf("Je fait le transfert\n");
-	send(sock, "a", 1, 0);
+
+
 	transfert(tun, sock);
 
 	close(sock);

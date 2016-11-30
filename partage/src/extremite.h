@@ -13,8 +13,8 @@
 
 #define MAXLIGNE 2048
 
-void ext_out(char*);
-void ext_out_handler(int);
+void ext_out(char*, int);
+void ext_out_handler(int, int);
 void ext_in(char*, char*, int);
 
 #endif
