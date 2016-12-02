@@ -126,7 +126,7 @@ void ext_in(char* ip, char* port, int tun)
 
 	while (connect(sock, resol->ai_addr, sizeof(struct sockaddr_in6)) < 0)
 	{
-		printf("Erreur de connection, reconnectiong...\n");
+		printf("Erreur de connexion, Reconnexion...\n");
 		sleep(1);
 	}
 
